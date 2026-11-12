@@ -13,8 +13,8 @@ export const firebaseConfig = {
 
 // Cloudinary -> Settings -> Upload -> Upload presets -> Add (Signing mode: Unsigned)
 export const CLOUDINARY = {
-  cloudName: "1000brend",
-  uploadPreset: "jen1qefq",
+  cloudName: "jen1qefq",
+  uploadPreset: "1000brend",
 };
 
 // Քանի coin է պետք խաղարկությանը մասնակցելու համար
