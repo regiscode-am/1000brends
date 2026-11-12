@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>1000 Բրենդ</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>🏆 1000 Բրենդ</h1>
+    <div class="right">
+      <span id="coins" class="coins hidden">🪙 0</span>
+      <span id="userName" class="hidden"></span>
+      <button id="loginBtn">Մուտք / Գրանցում</button>
+      <button id="logoutBtn" class="ghost hidden">Ելք</button>
+    </div>
+  </header>
+
+  <div class="progress">
+    <div class="bar"><div id="barFill"></div></div>
+    <small id="progressText">Մուտք գործիր՝ coin հավաքելու համար</small>
+  </div>
+
+  <main>
+    <div id="grid" class="grid"></div>
+    <div id="empty" class="empty hidden">Բրենդներ դեռ չկան</div>
+  </main>
+
+  <!-- Auth modal -->
+  <div id="authModal" class="modal-bg">
+    <div class="modal">
+      <h2 id="authTitle">Մուտք</h2>
+      <input id="nameInput" type="text" placeholder="Անուն" class="hidden" />
+      <input id="emailInput" type="email" placeholder="Email" />
+      <input id="passInput" type="password" placeholder="Գաղտնաբառ (նվազ. 6 նիշ)" />
+      <div id="authErr" class="err"></div>
+      <div class="row">
+        <button id="authSubmit">Մուտք</button>
+        <button id="googleBtn" class="ghost">Google</button>
+      </div>
+      <div class="row">
+        <button id="toggleMode" class="ghost">Գրանցվել</button>
+        <button id="closeAuth" class="ghost">Փակել</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

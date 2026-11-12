@@ -1,0 +1,98 @@
+:root {
+  --bg: #0f1220;
+  --card: #1a1f35;
+  --text: #eef0f8;
+  --muted: #8d93b0;
+  --accent: #ffc934;
+  --ok: #3ddc97;
+  --danger: #ff5c7a;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+header {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 20px;
+  background: rgba(15, 18, 32, .92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid #262c48;
+}
+header h1 { font-size: 18px; margin: 0; }
+.right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.coins {
+  background: var(--card); padding: 6px 12px; border-radius: 999px;
+  font-weight: 700; color: var(--accent);
+}
+button, .btn {
+  background: var(--accent); color: #1a1a1a; border: 0; padding: 8px 14px;
+  border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px;
+  text-decoration: none; display: inline-block;
+}
+button.ghost { background: transparent; color: var(--text); border: 1px solid #343b5e; }
+button.danger { background: var(--danger); color: #fff; }
+button:disabled { opacity: .5; cursor: not-allowed; }
+
+.progress { max-width: 1200px; margin: 18px auto 0; padding: 0 20px; }
+.bar { height: 10px; background: var(--card); border-radius: 999px; overflow: hidden; }
+.bar > div { height: 100%; width: 0; background: linear-gradient(90deg, var(--accent), var(--ok)); transition: width .4s; }
+.progress small { color: var(--muted); }
+
+main { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.grid {
+  display: grid; gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+}
+.tile {
+  position: relative; aspect-ratio: 1 / 1; background: #fff; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center; padding: 14px;
+  cursor: pointer; border: 0; transition: transform .15s, box-shadow .15s;
+}
+.tile:hover { transform: translateY(-3px); box-shadow: 0 8px 22px rgba(0,0,0,.35); }
+.tile img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.tile.done { opacity: .45; }
+.tile.done::after {
+  content: "✓"; position: absolute; top: 6px; right: 8px;
+  background: var(--ok); color: #fff; width: 22px; height: 22px; border-radius: 50%;
+  font-size: 14px; display: flex; align-items: center; justify-content: center;
+}
+.empty { color: var(--muted); text-align: center; padding: 60px 0; }
+
+/* modal */
+.modal-bg {
+  position: fixed; inset: 0; background: rgba(0,0,0,.65);
+  display: none; align-items: center; justify-content: center; z-index: 50; padding: 16px;
+}
+.modal-bg.open { display: flex; }
+.modal { background: var(--card); padding: 24px; border-radius: 16px; width: 100%; max-width: 380px; }
+.modal h2 { margin-top: 0; }
+input[type=text], input[type=email], input[type=password], input[type=url], input[type=file] {
+  width: 100%; padding: 10px 12px; margin: 6px 0 10px; border-radius: 8px;
+  border: 1px solid #343b5e; background: #11152a; color: var(--text); font-size: 14px;
+}
+.modal .row { display: flex; gap: 8px; margin-top: 6px; }
+.modal .row button { flex: 1; }
+.err { color: var(--danger); font-size: 13px; min-height: 18px; }
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--ok); color: #0b2a1d; padding: 10px 18px; border-radius: 999px;
+  font-weight: 700; transition: transform .3s; z-index: 60;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* admin */
+.wrap { max-width: 900px; margin: 0 auto; padding: 20px; }
+.panel { background: var(--card); padding: 20px; border-radius: 14px; margin-bottom: 20px; }
+.panel h2 { margin-top: 0; }
+.list { display: grid; gap: 10px; }
+.item { display: flex; align-items: center; gap: 12px; background: #11152a; padding: 8px 12px; border-radius: 10px; }
+.item img { width: 48px; height: 48px; object-fit: contain; background: #fff; border-radius: 8px; padding: 4px; }
+.item .meta { flex: 1; min-width: 0; }
+.item .meta div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item .meta small { color: var(--muted); }
+.winner { font-size: 22px; color: var(--accent); margin-top: 12px; font-weight: 800; }
+.hidden { display: none !important; }

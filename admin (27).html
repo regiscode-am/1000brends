@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="hy">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>⚙️ Admin</h1>
+    <div class="right">
+      <a class="btn ghost" style="background:transparent;color:#eef0f8;border:1px solid #343b5e" href="index.html">Կայք</a>
+      <button id="logoutBtn" class="ghost hidden">Ելք</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <!-- Login -->
+    <div id="loginPanel" class="panel">
+      <h2>Մուտք</h2>
+      <input id="email" type="email" placeholder="Email" />
+      <input id="pass" type="password" placeholder="Գաղտնաբառ" />
+      <div id="loginErr" class="err"></div>
+      <button id="loginBtn">Մուտք</button>
+    </div>
+
+    <!-- Admin content -->
+    <div id="adminArea" class="hidden">
+      <div class="panel">
+        <h2>Ավելացնել բրենդ</h2>
+        <input id="brandName" type="text" placeholder="Բրենդի անուն" />
+        <input id="brandLink" type="url" placeholder="Հղում (https://...)" />
+        <input id="brandLogo" type="file" accept="image/*" />
+        <div id="addErr" class="err"></div>
+        <button id="addBtn">Ավելացնել</button>
+      </div>
+
+      <div class="panel">
+        <h2>Բրենդներ (<span id="count">0</span>)</h2>
+        <div id="list" class="list"></div>
+      </div>
+
+      <div class="panel">
+        <h2>🎁 Խաղարկություն</h2>
+        <p>Մասնակիցներ (coin ≥ <span id="targetTxt"></span>): <b id="eligible">—</b></p>
+        <button id="loadUsers" class="ghost">Բեռնել մասնակիցներին</button>
+        <button id="drawBtn" disabled>Ընտրել հաղթողին</button>
+        <div id="winner" class="winner"></div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="admin.js"></script>
+</body>
+</html>
