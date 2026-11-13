@@ -89,9 +89,13 @@ $("partnerPrice").innerHTML = `${PARTNER_PRICE} <small>֏</small>`;
     a.textContent = text;
     box.appendChild(a);
   };
+  if (CONTACT.whatsapp) {
+    const text = encodeURIComponent(CONTACT.whatsappMessage || "");
+    add(`https://wa.me/${CONTACT.whatsapp}?text=${text}`, "💬 WhatsApp");
+  }
   if (CONTACT.instagram) add(CONTACT.instagram, "📷 Instagram");
   if (CONTACT.telegram) add(CONTACT.telegram, "✈️ Telegram");
-  if (CONTACT.phone) add("tel:" + CONTACT.phone, "📞 " + CONTACT.phone);
+  if (CONTACT.phone) add("tel:" + CONTACT.phone, "📞 Զանգել՝ " + (CONTACT.phoneLabel || CONTACT.phone));
   if (!box.children.length) {
     const p = document.createElement("p");
     p.textContent = "Կապի տվյալները շուտով կավելանան";
