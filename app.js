@@ -9,24 +9,30 @@ import {
   query, orderBy, serverTimestamp, increment,
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { firebaseConfig, TARGET } from "./config.js";
+import { WAIT_SECONDS, PRIZE_AMOUNT, DRAW_DATE, CONTACT, PARTNER_PRICE } from "./settings.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-
 const $ = (id) => document.getElementById(id);
+
 let currentUser = null;
 let coins = 0;
 let brands = [];
 let visited = new Set();
-let busy = new Set();
+const pending = new Map();   // brandId -> startMs
+const tiles = new Map();     // brandId -> element
+const creating = new Set();
+const claiming = new Set();
+const nextTry = new Map();
 
 /* ---------- helpers ---------- */
-function toast(msg) {
+function toast(msg, ms = 2600) {
   const t = $("toast");
   t.textContent = msg;
   t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 2200);
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("show"), ms);
 }
 function safeUrl(u) {
   try {
@@ -34,6 +40,90 @@ function safeUrl(u) {
     return x.protocol === "http:" || x.protocol === "https:" ? x.href : null;
   } catch { return null; }
 }
+const fmtTime = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+
+/* ---------- static page parts ---------- */
+$("targetTxt").textContent = TARGET;
+$("partnerPrice").innerHTML = `${PARTNER_PRICE} <small>֏</small>`;
+
+// jackpot digits
+(function renderJackpot() {
+  const s = PRIZE_AMOUNT.toLocaleString("en-US").replace(/,/g, " ");
+  const box = $("jackpot");
+  for (const ch of s) {
+    const d = document.createElement("div");
+    d.className = ch === " " ? "digit sep" : "digit";
+    d.textContent = ch === " " ? "" : ch;
+    box.appendChild(d);
+  }
+  const c = document.createElement("div");
+  c.className = "currency";
+  c.textContent = "֏";
+  box.appendChild(c);
+})();
+
+// floating coins
+(function floatingCoins() {
+  const hero = $("hero");
+  for (let i = 0; i < 16; i++) {
+    const s = document.createElement("span");
+    s.className = "float-coin";
+    s.textContent = "🪙";
+    s.style.left = Math.random() * 95 + "%";
+    s.style.animationDuration = 6 + Math.random() * 7 + "s";
+    s.style.animationDelay = Math.random() * 8 + "s";
+    s.style.fontSize = 18 + Math.random() * 18 + "px";
+    hero.appendChild(s);
+  }
+})();
+
+// contacts
+(function renderContacts() {
+  const box = $("contacts");
+  const add = (href, text) => {
+    const a = document.createElement("a");
+    a.className = "btn";
+    a.href = href;
+    a.target = "_blank";
+    a.rel = "noopener";
+    a.textContent = text;
+    box.appendChild(a);
+  };
+  if (CONTACT.instagram) add(CONTACT.instagram, "📷 Instagram");
+  if (CONTACT.telegram) add(CONTACT.telegram, "✈️ Telegram");
+  if (CONTACT.phone) add("tel:" + CONTACT.phone, "📞 " + CONTACT.phone);
+  if (!box.children.length) {
+    const p = document.createElement("p");
+    p.textContent = "Կապի տվյալները շուտով կավելանան";
+    box.appendChild(p);
+  }
+})();
+
+// draw countdown
+(function drawCountdown() {
+  if (!DRAW_DATE) return;
+  const end = new Date(DRAW_DATE).getTime();
+  if (isNaN(end)) return;
+  const box = $("drawCountdown");
+  box.classList.remove("hidden");
+  const tick = () => {
+    let left = Math.max(0, Math.floor((end - Date.now()) / 1000));
+    const d = Math.floor(left / 86400); left %= 86400;
+    const h = Math.floor(left / 3600); left %= 3600;
+    const m = Math.floor(left / 60);
+    const s = left % 60;
+    box.innerHTML = [[d, "օր"], [h, "ժամ"], [m, "րոպե"], [s, "վրկ"]]
+      .map(([v, l]) => `<div class="cd"><b>${String(v).padStart(2, "0")}</b><small>${l}</small></div>`)
+      .join("");
+  };
+  tick();
+  setInterval(tick, 1000);
+})();
+
+$("heroCta").onclick = () => {
+  if (!currentUser) openAuth();
+  else document.getElementById("brands").scrollIntoView();
+};
 
 /* ---------- brands ---------- */
 async function loadBrands() {
@@ -45,62 +135,122 @@ async function loadBrands() {
 function renderGrid() {
   const grid = $("grid");
   grid.innerHTML = "";
+  tiles.clear();
   $("empty").classList.toggle("hidden", brands.length > 0);
   for (const b of brands) {
     const el = document.createElement("button");
-    el.className = "tile" + (visited.has(b.id) ? " done" : "");
+    el.className = "tile";
     el.title = b.name;
-    el.dataset.id = b.id;
     const img = document.createElement("img");
     img.src = b.logo;
     img.alt = b.name;
     img.loading = "lazy";
-    el.appendChild(img);
-    el.addEventListener("click", () => onBrandClick(b, el));
+    const timer = document.createElement("span");
+    timer.className = "timer";
+    const check = document.createElement("span");
+    check.className = "check";
+    check.textContent = "✓";
+    el.append(img, timer, check);
+    el.addEventListener("click", () => onBrandClick(b));
     grid.appendChild(el);
+    tiles.set(b.id, el);
+    applyTileState(b.id);
   }
 }
 
-async function loadVisited() {
-  visited = new Set();
-  if (!currentUser) return;
-  const snap = await getDocs(collection(db, "users", currentUser.uid, "visited"));
-  snap.forEach((d) => visited.add(d.id));
+function applyTileState(id) {
+  const el = tiles.get(id);
+  if (!el) return;
+  el.classList.toggle("done", visited.has(id));
+  el.classList.toggle("pending", pending.has(id) && !visited.has(id));
 }
 
-/* ---------- click + coin ---------- */
-async function onBrandClick(brand, el) {
+async function loadUserState() {
+  visited = new Set();
+  pending.clear();
+  if (!currentUser) return;
+  const uid = currentUser.uid;
+  const [v, p] = await Promise.all([
+    getDocs(collection(db, "users", uid, "visited")),
+    getDocs(collection(db, "users", uid, "pending")),
+  ]);
+  v.forEach((d) => visited.add(d.id));
+  p.forEach((d) => {
+    const ms = d.data().startedAt?.toMillis?.();
+    if (ms && !visited.has(d.id)) pending.set(d.id, ms);
+  });
+}
+
+/* ---------- click -> timer -> coin ---------- */
+async function onBrandClick(brand) {
   const url = safeUrl(brand.link);
   if (!url) return;
 
   if (!currentUser) {
-    // չգրանցվածին նույնպես թույլ ենք տալիս բացել, բայց coin չի ստանում
-    window.open(url, "_blank", "noopener");
     openAuth();
-    toast("Coin ստանալու համար մուտք գործիր");
+    toast("Նախ գրանցվիր կամ մուտք գործիր, որ coin ստանաս");
     return;
   }
 
   // popup blocker-ից խուսափելու համար թաբը բացում ենք անմիջապես
   window.open(url, "_blank", "noopener");
 
-  if (visited.has(brand.id) || busy.has(brand.id)) return;
-  busy.add(brand.id);
+  if (visited.has(brand.id)) { toast("Այս բրենդի coin-ը արդեն ստացել ես ✓"); return; }
+  if (pending.has(brand.id)) { toast("Timer-ը արդեն աշխատում է։ Թող այս էջը բաց մնա"); return; }
+  if (creating.has(brand.id)) return;
+
+  creating.add(brand.id);
   try {
-    const batch = writeBatch(db);
-    batch.set(doc(db, "users", currentUser.uid, "visited", brand.id), { at: serverTimestamp() });
-    batch.update(doc(db, "users", currentUser.uid), { coins: increment(1), lastBrand: brand.id });
-    await batch.commit();
-    visited.add(brand.id);
-    coins += 1;
-    el.classList.add("done");
-    updateCoins();
-    toast("+1 🪙");
+    const ref = doc(db, "users", currentUser.uid, "pending", brand.id);
+    await setDoc(ref, { startedAt: serverTimestamp() });
+    pending.set(brand.id, Date.now());
+    applyTileState(brand.id);
+    tick();
+    toast(`Մնա բրենդի կայքում ${Math.round(WAIT_SECONDS / 60)} րոպե, և coin-ը ավտոմատ կավելանա։ Այս էջը թող բաց մնա`, 5000);
   } catch (e) {
     console.error(e);
-    toast("Չհաջողվեց coin ավելացնել");
+    toast("Չհաջողվեց սկսել։ Փորձիր նորից");
   } finally {
-    busy.delete(brand.id);
+    creating.delete(brand.id);
+  }
+}
+
+function tick() {
+  const now = Date.now();
+  for (const [id, start] of pending) {
+    if (visited.has(id)) continue;
+    const left = WAIT_SECONDS - Math.floor((now - start) / 1000);
+    const el = tiles.get(id);
+    if (el) {
+      el.classList.add("pending");
+      el.querySelector(".timer").textContent = left > 0 ? "⏳ " + fmtTime(left) : "🪙 ...";
+    }
+    // +3 վրկ պաշար՝ ժամացույցների տարբերության համար
+    if (left <= -3 && !claiming.has(id) && (nextTry.get(id) || 0) <= now) claim(id);
+  }
+}
+setInterval(tick, 1000);
+
+async function claim(id) {
+  if (!currentUser) return;
+  claiming.add(id);
+  try {
+    const uid = currentUser.uid;
+    const batch = writeBatch(db);
+    batch.set(doc(db, "users", uid, "visited", id), { at: serverTimestamp() });
+    batch.update(doc(db, "users", uid), { coins: increment(1), lastBrand: id });
+    await batch.commit();
+    visited.add(id);
+    pending.delete(id);
+    coins += 1;
+    applyTileState(id);
+    updateCoins();
+    toast("🎉 +1 coin ավելացավ!");
+  } catch (e) {
+    console.error("claim failed", e);
+    nextTry.set(id, Date.now() + 8000); // կրկին կփորձի 8 վրկ հետո
+  } finally {
+    claiming.delete(id);
   }
 }
 
@@ -110,8 +260,8 @@ function updateCoins() {
   $("barFill").style.width = pct + "%";
   $("progressText").textContent =
     coins >= TARGET
-      ? "🎉 Դու հավաքել ես " + TARGET + " coin և մասնակցում ես խաղարկությանը։"
-      : `${coins} / ${TARGET} coin՝ խաղարկությանը մասնակցելու համար`;
+      ? `🎉 Դու հավաքել ես ${TARGET} coin և մասնակցում ես ${PRIZE_AMOUNT.toLocaleString("en-US").replace(/,/g, " ")} ֏ խաղարկությանը։`
+      : `${coins} / ${TARGET} coin։ Խաղարկությանը մասնակցելու համար պետք է հավաքես ${TARGET}`;
 }
 
 /* ---------- auth ---------- */
@@ -188,15 +338,16 @@ onAuthStateChanged(auth, async (user) => {
     const snap = await getDoc(doc(db, "users", user.uid));
     coins = snap.data()?.coins || 0;
     $("userName").textContent = snap.data()?.name || user.email;
-    await loadVisited();
+    await loadUserState();
     updateCoins();
   } else {
     coins = 0;
     visited = new Set();
+    pending.clear();
     $("barFill").style.width = "0";
     $("progressText").textContent = "Մուտք գործիր՝ coin հավաքելու համար";
   }
-  renderGrid();
+  for (const id of tiles.keys()) applyTileState(id);
 });
 
 loadBrands();
