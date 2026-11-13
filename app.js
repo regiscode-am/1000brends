@@ -25,6 +25,7 @@ const tiles = new Map();     // brandId -> element
 const creating = new Set();
 const claiming = new Set();
 const nextTry = new Map();
+let brandsLoaded = false;
 
 /* ---------- helpers ---------- */
 function toast(msg, ms = 2600) {
@@ -133,6 +134,7 @@ $("heroCta").onclick = () => {
 async function loadBrands() {
   const snap = await getDocs(query(collection(db, "brands"), orderBy("order")));
   brands = snap.docs.map((d) => ({ id: d.id, ...d.data() })).filter((b) => b.active !== false);
+  brandsLoaded = true;
   renderGrid();
 }
 
@@ -196,6 +198,14 @@ async function onBrandClick(brand) {
     return;
   }
 
+  // Միաժամանակ միայն մեկ timer (coin-ը տրվում է առավելագույնը 5 րոպեն մեկ)
+  const other = [...pending.keys()].find((k) => k !== brand.id && !visited.has(k));
+  if (other && !visited.has(brand.id)) {
+    const left = Math.max(0, WAIT_SECONDS - Math.floor((Date.now() - pending.get(other)) / 1000));
+    toast(`Մեկ այլ բրենդի timer-ը դեռ աշխատում է (${fmtTime(left)}): Սպասիր, մինչև coin-ը ավելանա`, 4500);
+    return;
+  }
+
   // popup blocker-ից խուսափելու համար թաբը բացում ենք անմիջապես
   window.open(url, "_blank", "noopener");
 
@@ -223,6 +233,8 @@ function tick() {
   const now = Date.now();
   for (const [id, start] of pending) {
     if (visited.has(id)) continue;
+    // ջնջված կամ անջատված բրենդի timer-ը չի խանգարում նորերին
+    if (brandsLoaded && !tiles.has(id)) { pending.delete(id); continue; }
     const left = WAIT_SECONDS - Math.floor((now - start) / 1000);
     const el = tiles.get(id);
     if (el) {
@@ -242,7 +254,7 @@ async function claim(id) {
     const uid = currentUser.uid;
     const batch = writeBatch(db);
     batch.set(doc(db, "users", uid, "visited", id), { at: serverTimestamp() });
-    batch.update(doc(db, "users", uid), { coins: increment(1), lastBrand: id });
+    batch.update(doc(db, "users", uid), { coins: increment(1), lastBrand: id, lastClaimAt: serverTimestamp() });
     await batch.commit();
     visited.add(id);
     pending.delete(id);
