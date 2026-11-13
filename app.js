@@ -80,7 +80,16 @@ $("partnerPrice").innerHTML = `${PARTNER_PRICE} <small>֏</small>`;
 
 // contacts
 (function renderContacts() {
-  const box = $("contacts");
+  let box = $("contacts");
+  if (!box) {
+    // եթե index.html-ում contacts բլոկը բացակայում է, ստեղծում ենք ինքնուրույն
+    const pb = document.querySelector(".price-box") || document.getElementById("partners");
+    if (!pb) return;
+    box = document.createElement("div");
+    box.className = "contacts";
+    box.id = "contacts";
+    pb.appendChild(box);
+  }
   const add = (href, text) => {
     const a = document.createElement("a");
     a.className = "btn";
