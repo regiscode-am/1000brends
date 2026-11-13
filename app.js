@@ -302,17 +302,28 @@ function setMode(reg) {
   $("nameInput").classList.toggle("hidden", !reg);
 }
 
-async function ensureUserDoc(user, name) {
-  const ref = doc(db, "users", user.uid);
-  const snap = await getDoc(ref);
-  if (!snap.exists()) {
-    await setDoc(ref, {
-      name: name || user.displayName || "",
-      email: user.email || "",
-      coins: 0,
-      createdAt: serverTimestamp(),
-    });
+// Գրանցման ժամանակ onAuthStateChanged-ը և կոճակը միաժամանակ կանչում են այս ֆունկցիան.
+// երկրորդ setDoc-ը կդիտվեր update և rules-ը կմերժեր, ուստի նույն uid-ի համար միայն մեկ կանչ է աշխատում
+let signupName = "";
+const ensuring = new Map();
+function ensureUserDoc(user, name) {
+  if (name) signupName = name;
+  if (!ensuring.has(user.uid)) {
+    const p = (async () => {
+      const ref = doc(db, "users", user.uid);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) {
+        await setDoc(ref, {
+          name: (name || signupName || user.displayName || "").slice(0, 80),
+          email: user.email || "",
+          coins: 0,
+          createdAt: serverTimestamp(),
+        });
+      }
+    })().finally(() => ensuring.delete(user.uid));
+    ensuring.set(user.uid, p);
   }
+  return ensuring.get(user.uid);
 }
 
 $("loginBtn").onclick = openAuth;
@@ -328,6 +339,7 @@ $("authSubmit").onclick = async () => {
   try {
     if (registerMode) {
       if (!name) { $("authErr").textContent = "Գրիր անունդ"; return; }
+      signupName = name;
       const cred = await createUserWithEmailAndPassword(auth, email, pass);
       await updateProfile(cred.user, { displayName: name });
       await ensureUserDoc(cred.user, name);
