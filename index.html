@@ -3,12 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>1000 Բրենդ</title>
+  <title>1000 Բրենդ — հավաքիր coin, շահիր 200 000 ֏</title>
+  <meta name="description" content="Այցելիր բրենդների կայքերը, հավաքիր 1000 coin և մասնակցիր 200 000 դրամի խաղարկությանը։" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <header>
-    <h1>🏆 1000 Բրենդ</h1>
+    <h1>🎰 1000 ԲՐԵՆԴ</h1>
+    <nav>
+      <a href="#how">Ինչպես է աշխատում</a>
+      <a href="#brands">Բրենդներ</a>
+      <a href="#partners">Բրենդներին</a>
+    </nav>
     <div class="right">
       <span id="coins" class="coins hidden">🪙 0</span>
       <span id="userName" class="hidden"></span>
@@ -17,15 +23,90 @@
     </div>
   </header>
 
-  <div class="progress">
-    <div class="bar"><div id="barFill"></div></div>
-    <small id="progressText">Մուտք գործիր՝ coin հավաքելու համար</small>
+  <!-- HERO -->
+  <div class="hero" id="hero">
+    <span class="badge">ՄԵԾ ԽԱՂԱՐԿՈՒԹՅՈՒՆ</span>
+    <h2>Մրցանակային ֆոնդ</h2>
+    <div class="jackpot" id="jackpot"></div>
+    <p class="lead">
+      Այցելիր բրենդների կայքերը, ամեն բրենդի համար ստացիր <b>1 coin</b>։
+      Ով հավաքի <b id="targetTxt">1000</b> coin, կմասնակցի խաղարկությանը։
+    </p>
+    <div id="drawCountdown" class="hidden"></div>
+    <button id="heroCta" class="big btn big">Սկսել հավաքել 🪙</button>
   </div>
 
-  <main>
+  <!-- HOW IT WORKS -->
+  <section id="how">
+    <h3>Ինչպես է աշխատում</h3>
+    <p class="sub">Չորս պարզ քայլ՝ մինչև խաղարկությանը մասնակցելը</p>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <h4>Գրանցվիր</h4>
+        <p>Մուտք գործիր email-ով կամ Google-ով։ Առանց գրանցվելու coin չի հաշվվում։</p>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <h4>Ընտրիր բրենդ</h4>
+        <p>Սեղմիր ցանկացած լոգոյի վրա։ Բրենդի կայքը կբացվի նոր էջում։</p>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <h4>Մնա 5 րոպե</h4>
+        <p>Բրենդի կայքում մնա <b>5 րոպե</b>, և այդ ժամանակից հետո քո հաշվին ավտոմատ կավելանա +1 coin։ Այս էջը թող բաց մնա։</p>
+      </div>
+      <div class="step">
+        <div class="num">4</div>
+        <h4>Հավաքիր 1000 coin</h4>
+        <p>Երբ հավաքես 1000 coin, մասնակցում ես 200 000 ֏ խաղարկությանը։</p>
+      </div>
+    </div>
+    <div class="notice">
+      ⏳ Բրենդները կայքում ավելանում են <b>աստիճանաբար</b>, ուստի coin-երը հավաքվում են քայլ առ քայլ։
+      Նոր բրենդ ավելանալիս նորից մտիր և սեղմիր նրա լոգոյի վրա։ Ամեն բրենդի համար coin կարելի է ստանալ միայն մեկ անգամ։
+    </div>
+  </section>
+
+  <!-- PROGRESS -->
+  <div class="progress">
+    <div class="progress-card">
+      <div class="bar"><div id="barFill"></div></div>
+      <small id="progressText">Մուտք գործիր՝ coin հավաքելու համար</small>
+    </div>
+  </div>
+
+  <!-- BRANDS -->
+  <section id="brands">
+    <h3>Բրենդներ</h3>
+    <p class="sub">Սեղմիր լոգոյի վրա, մնա կայքում 5 րոպե և ստացիր coin</p>
     <div id="grid" class="grid"></div>
-    <div id="empty" class="empty hidden">Բրենդներ դեռ չկան</div>
-  </main>
+    <div id="empty" class="empty hidden">Բրենդներ դեռ չկան, շուտով կավելանան</div>
+  </section>
+
+  <!-- PARTNERS -->
+  <section id="partners">
+    <div class="partner">
+      <div>
+        <h3>Ուզո՞ւմ եք, որ ձեր բրենդը այստեղ լինի</h3>
+        <ul>
+          <li>Ձեր լոգոն կտեղադրվի կայքում, և այն սեղմելիս հազարավոր մարդիկ կանցնեն ձեր կայք</li>
+          <li>Օգտատերը ձեր կայքում մնում է 5 րոպե, ինչը իրական և հետաքրքրված տրաֆիկ է</li>
+          <li>Ձեր բրենդի մասին կնկարահանվի reel</li>
+        </ul>
+      </div>
+      <div class="price-box">
+        <div class="price" id="partnerPrice">1000 <small>֏</small></div>
+        <p>Մեկ բրենդի գործընկերության արժեքը</p>
+        <div class="contacts" id="contacts"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    © 1000 Բրենդ. Խաղարկությանը մասնակցում են այն օգտատերերը, ովքեր հավաքել են անհրաժեշտ coin-երի քանակը։<br />
+    Բրենդների լոգոները և անունները պատկանում են իրենց սեփականատերերին։
+  </footer>
 
   <!-- Auth modal -->
   <div id="authModal" class="modal-bg">
