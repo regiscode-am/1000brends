@@ -14,9 +14,15 @@ export const DRAW_DATE = "";
 
 // Կապի տվյալներ բրենդների համար (դատարկ թողածը չի երևա)
 export const CONTACT = {
-  instagram: "", // օր. "https://instagram.com/քո_էջը"
-  telegram: "",  // օր. "https://t.me/քո_անունը"
-  phone: "",     // օր. "+37499123456"
+  instagram: "https://www.instagram.com/regis_code_am/",
+  // WhatsApp-ի համար միջազգային ձևաչափով թիվ՝ առանց + և բացատների (+374 98 488275)
+  whatsapp: "37498488275",
+  // WhatsApp-ի ավտոմատ նախապես գրված նամակը
+  whatsappMessage: "Բարև ձեզ, ես ունեմ բրենդ և ուզում եմ միանալ «1000 Բրենդ» նախագծին։",
+  // Սովորական զանգի համար
+  phone: "+37498488275",
+  phoneLabel: "098 488 275",
+  telegram: "",
 };
 
 // Գործընկերության գինը (դրամ)
